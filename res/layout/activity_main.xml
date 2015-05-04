@@ -13,13 +13,6 @@
         android:layout_alignParentTop="true"
         class="com.google.android.gms.maps.SupportMapFragment" 
         />
-     
-    <!-- To preview video recorded -->
-    <VideoView
-        android:id="@+id/videoPreview"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:visibility="gone" />
     
     <Button
         android:id="@+id/btn_Camera"

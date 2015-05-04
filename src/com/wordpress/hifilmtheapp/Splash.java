@@ -7,8 +7,9 @@ import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
+import android.support.v4.app.FragmentActivity;
 
-public class Splash extends Activity {
+public class Splash extends FragmentActivity {
 	
 	private final int SPLASH_DISPLAY_LENGTH = 5000;
 	MediaPlayer logoMusic;
@@ -39,7 +40,7 @@ public class Splash extends Activity {
                 {
                     //Finish the splash activity so it can't be returned to.
                 	Splash.this.finish();
-                    // Create an Intent that will start the main activity.
+                    //Create an Intent that will start the main activity.
                     Intent mainIntent = new Intent(Splash.this, MainActivity.class);
                     Splash.this.startActivity(mainIntent);
                 }

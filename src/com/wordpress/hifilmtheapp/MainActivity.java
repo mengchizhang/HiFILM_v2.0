@@ -3,10 +3,12 @@ package com.wordpress.hifilmtheapp;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
@@ -20,25 +22,19 @@ import android.widget.Button;
 import android.widget.Toast;
 import android.widget.VideoView;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.google.android.gms.location.LocationListener;
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.GoogleMap.InfoWindowAdapter;
-import com.google.android.gms.maps.GoogleMap.OnMarkerClickListener;
-import com.google.android.gms.maps.GoogleMap.OnMarkerDragListener;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.maps.android.clustering.ClusterManager;
-import com.special.ResideMenu.ResideMenu;
-import com.special.ResideMenu.ResideMenuItem;
  
-public class MainActivity extends FragmentActivity implements LocationListener, InfoWindowAdapter, OnMarkerClickListener, OnMarkerDragListener{
+/**
+ * @author SpIritisTz
+ *
+ */
+public class MainActivity extends FragmentActivity {
 	
     static final LatLng LONDON = new LatLng(51.5072, 0.1275);
 	static final LatLng UOW = new LatLng(51.57761, -0.324568);
@@ -48,53 +44,12 @@ public class MainActivity extends FragmentActivity implements LocationListener, 
 	static final LatLng ROME = new LatLng(41.9000, 12.5000);
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
-    private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
-    private static final int CAPTURE_VIDEO_ACTIVITY_REQUEST_CODE = 200;
+    private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100; // Camera activity request codes
+    private static final int CAPTURE_VIDEO_ACTIVITY_REQUEST_CODE = 200; // Camera activity request codes
+    private static final String TAG = MainActivity.class.getSimpleName(); // LogCat tag
     public static final int MEDIA_TYPE_IMAGE = 1;
     public static final int MEDIA_TYPE_VIDEO = 2;
     private Uri fileUri; // File url to store image/video
-    private VideoView videoPreview;
-
-    /** Create a file Uri for saving an image or video */
-    private static Uri getOutputMediaFileUri(int type){
-          return Uri.fromFile(getOutputMediaFile(type));
-    }
-
-    /** Create a File for saving an image or video */
-    @SuppressLint("SimpleDateFormat")
-	private static File getOutputMediaFile(int type){
-        // To be safe, you should check that the SDCard is mounted
-        // using Environment.getExternalStorageState() before doing this.
-
-        File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
-                  Environment.DIRECTORY_DCIM), "HiFILM");
-        // This location works best if you want the created images to be shared
-        // between applications and persist after your app has been uninstalled.
-
-        // Create the storage directory if it does not exist
-        if (! mediaStorageDir.exists()){
-            if (! mediaStorageDir.mkdirs()){
-                Log.d("HiFILM", "failed to create directory");
-                return null;
-            }
-        }
-
-        // Create a media file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        File mediaFile;
-        if (type == MEDIA_TYPE_IMAGE){
-            mediaFile = new File(mediaStorageDir.getPath() + File.separator +
-            "IMG_"+ timeStamp + ".jpg");
-        } else if(type == MEDIA_TYPE_VIDEO) {
-            mediaFile = new File(mediaStorageDir.getPath() + File.separator +
-            "VID_"+ timeStamp + ".mp4");
-        } else {
-            return null;
-        }
-
-        return mediaFile;
-    }
-    
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,7 +59,6 @@ public class MainActivity extends FragmentActivity implements LocationListener, 
                
         Button cb = (Button) findViewById(R.id.btn_Camera);
         Button vb = (Button) findViewById(R.id.btn_Video);
-        videoPreview = (VideoView) findViewById(R.id.videoPreview);
         
         cb.setOnClickListener(new View.OnClickListener() {			
 			
@@ -121,20 +75,7 @@ public class MainActivity extends FragmentActivity implements LocationListener, 
 			    startActivityForResult(intent, CAPTURE_VIDEO_ACTIVITY_REQUEST_CODE);				
 			}
 		});
-        
-        mMap.setOnMarkerClickListener(new OnMarkerClickListener() {
-
-            public void OnMarkerClickListener(Marker marker) {
-            	startActivity(new Intent("android.intent.action.Video"));
-            }
-
-			@Override
-			public boolean onMarkerClick(Marker arg0) {
-				// TODO Auto-generated method stub
-				return true;
-			}
-        });
-                
+                        
         vb.setOnClickListener(new View.OnClickListener() {
 			
 			@Override
@@ -142,15 +83,55 @@ public class MainActivity extends FragmentActivity implements LocationListener, 
 				// TODO Auto-generated method stub
 				startActivity(new Intent("android.intent.action.Video"));
 			}
-		});                        
+		});
+        
+        // Checking camera availability
+        if (!isDeviceSupportCamera()) {
+            Toast.makeText(getApplicationContext(),
+                    "Sorry! Your device doesn't support camera",
+                    Toast.LENGTH_LONG).show();
+            // will close the app if the device does't have camera
+            finish();
+        }
     }
+
+    
+    /** Checking device has camera hardware or not */ 
+    private boolean isDeviceSupportCamera() {
+        if (getApplicationContext().getPackageManager().hasSystemFeature(
+                PackageManager.FEATURE_CAMERA)) {
+            // This device has a camera
+            return true;
+        } else {
+            // No camera on this device
+            return false;
+        }
+    }
+    
+    /** Here we store the file url as it will be null after returning from App */
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);    
+        // Save file url in bundle as it will be null on screen orientation changes
+        outState.putParcelable("file_uri", fileUri);
+    }
+     
+    /** Here we restore the fileUri again*/
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);     
+        // Get the file url
+        fileUri = savedInstanceState.getParcelable("file_uri");
+    }        
     
     /** Receiving activity result method will be called after closing the camera */    
 	@Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		// If the result is capturing Image
 		if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) {
-            if (resultCode == RESULT_OK) {
+            if (resultCode == RESULT_OK) {            	
+            	// launching upload activity
+            	launchUploadActivity(true);
                 // Image captured and saved to fileUri specified in the Intent
                 Toast.makeText(this, "Image saved to:\n" +
                          data.getData(), Toast.LENGTH_LONG)
@@ -169,9 +150,10 @@ public class MainActivity extends FragmentActivity implements LocationListener, 
         }
 
         if (requestCode == CAPTURE_VIDEO_ACTIVITY_REQUEST_CODE) {
-            if (resultCode == RESULT_OK) {
-                // Preview the recorded video
-                previewVideo();
+            if (resultCode == RESULT_OK) {                
+            	// Video successfully recorded, preview the recorded video
+                // launching upload activity
+                launchUploadActivity(false);
             	// Video captured and saved to fileUri specified in the Intent
                 Toast.makeText(this, "Video saved to:\n" +
                          data.getData(), Toast.LENGTH_LONG)
@@ -189,34 +171,50 @@ public class MainActivity extends FragmentActivity implements LocationListener, 
             }
         }
     }
+    
+    private void launchUploadActivity(boolean isImage){
+        Intent i = new Intent(MainActivity.this, UploadActivity.class);
+        i.putExtra("filePath", fileUri.getPath());
+        i.putExtra("isImage", isImage);
+        startActivity(i);
+    }
 
-	/** Previewing recorded video */
-    private void previewVideo() {
-        try {
-            videoPreview.setVisibility(View.VISIBLE);
-            videoPreview.setVideoURI(fileUri);
-            // start playing
-            videoPreview.start();
-        } catch (Exception e) {
-            e.printStackTrace();
+    /** Create a file Uri for saving an image or video */
+    private static Uri getOutputMediaFileUri(int type){
+          return Uri.fromFile(getOutputMediaFile(type));
+    }
+
+    /** Create a File for saving an image or video */
+    @SuppressLint("SimpleDateFormat")
+	private static File getOutputMediaFile(int type){
+        // Using Environment.getExternalStorageState() to check that the SDCard is mounted
+        File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
+                  Environment.DIRECTORY_DCIM), Config.VIDEO_DIRECTORY_NAME);
+        // between applications and persist after your app has been uninstalled.
+
+        // Create the storage directory if it does not exist
+        if (! mediaStorageDir.exists()){
+            if (! mediaStorageDir.mkdirs()){
+                Log.d(TAG, "Failed to create" + Config.VIDEO_DIRECTORY_NAME + " directory");
+                return null;
+            }
         }
-    }
 
-    /** Here we store the file url as it will be null after returning from App */
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);    
-        // Save file url in bundle as it will be null on screen orientation
-        outState.putParcelable("file_uri", fileUri);
+        // Create a media file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+        File mediaFile;
+        if (type == MEDIA_TYPE_IMAGE){
+            mediaFile = new File(mediaStorageDir.getPath() + File.separator +
+            "IMG_"+ timeStamp + ".jpg");
+        } else if(type == MEDIA_TYPE_VIDEO) {
+            mediaFile = new File(mediaStorageDir.getPath() + File.separator +
+            "VID_"+ timeStamp + ".mp4");
+        } else {
+            return null;
+        }
+
+        return mediaFile;
     }
-     
-    /** Here we restore the fileUri again*/
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);     
-        // Get the file url
-        fileUri = savedInstanceState.getParcelable("file_uri");
-    }    
     
 	@Override
     protected void onResume() {
@@ -297,49 +295,6 @@ public class MainActivity extends FragmentActivity implements LocationListener, 
                 .icon(BitmapDescriptorFactory
                 .fromResource(R.drawable.marker_na)));
         
-    }
-
-	@Override
-	public void onMarkerDrag(Marker arg0) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void onMarkerDragEnd(Marker arg0) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void onMarkerDragStart(Marker arg0) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public boolean onMarkerClick(Marker arg0) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public View getInfoContents(Marker arg0) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public View getInfoWindow(Marker arg0) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void onLocationChanged(Location arg0) {
-		// TODO Auto-generated method stub
-		
-	}
- 
+    } 
     
 }

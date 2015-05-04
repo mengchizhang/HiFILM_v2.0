@@ -6,5 +6,6 @@
 	<classpathentry exported="true" kind="lib" path="C:/Users/SpIritisTz/AppData/Local/Android/sdk/extras/android/support/v4/android-support-v4.jar"/>
 	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.DEPENDENCIES"/>
 	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
+	<classpathentry kind="lib" path="C:/Users/SpIritisTz/AppData/Local/Android/sdk/tools/lib/httpmime-4.1.jar"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>
