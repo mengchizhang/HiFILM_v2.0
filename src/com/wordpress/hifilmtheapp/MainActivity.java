@@ -3,7 +3,9 @@ package com.wordpress.hifilmtheapp;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
@@ -22,7 +24,10 @@ import android.widget.Button;
 import android.widget.Toast;
 import android.widget.VideoView;
 
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.GoogleMap.OnInfoWindowClickListener;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
@@ -34,16 +39,17 @@ import com.google.android.gms.maps.model.MarkerOptions;
  * @author SpIritisTz
  *
  */
-public class MainActivity extends FragmentActivity {
+public class MainActivity extends FragmentActivity implements OnInfoWindowClickListener {
 	
-    static final LatLng LONDON = new LatLng(51.5072, 0.1275);
-	static final LatLng UOW = new LatLng(51.57761, -0.324568);
+    static final LatLng LONDON = new LatLng(51.5072, 0.1275); // Pre-assign different locations 
+	static final LatLng UOW = new LatLng(51.57763, -0.319494);
 	static final LatLng PARIS = new LatLng(48.8567, 2.3508);
 	static final LatLng BERLIN = new LatLng(52.5167, 13.3833);
-	static final LatLng MADRID = new LatLng(40.4000, 3.6833);
+	static final LatLng MADRID = new LatLng(40.42186, -3.707886);
 	static final LatLng ROME = new LatLng(41.9000, 12.5000);
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
+    private Map<Marker, Class<?>> allMarkersMap = new HashMap<Marker, Class<?>>();
     private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100; // Camera activity request codes
     private static final int CAPTURE_VIDEO_ACTIVITY_REQUEST_CODE = 200; // Camera activity request codes
     private static final String TAG = MainActivity.class.getSimpleName(); // LogCat tag
@@ -51,15 +57,40 @@ public class MainActivity extends FragmentActivity {
     public static final int MEDIA_TYPE_VIDEO = 2;
     private Uri fileUri; // File url to store image/video
 
+    /** This is where we implement main method in app*/
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         setUpMapIfNeeded();
                
-        Button cb = (Button) findViewById(R.id.btn_Camera);
+        Button cb = (Button) findViewById(R.id.btn_Camera); //Define button variable
         Button vb = (Button) findViewById(R.id.btn_Video);
         
+        Marker marker = mMap.addMarker(new MarkerOptions()
+        .position(UOW)
+        .title("University of Westminster")
+        .snippet("Check out films here!")    
+        .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_a)));
+        allMarkersMap.put(marker, Video.class); //Using HashMap to assign each marker for different intents, Class is where to store these intents
+        mMap.setOnInfoWindowClickListener(this); //Call onInfoWindowClick method
+
+        Marker marker1 = mMap.addMarker(new MarkerOptions()
+        .position(new LatLng(51.57851, -0.325663))
+        .title("Harrow")
+        .snippet("Check out graffitis here!") 
+        .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_a)));
+        allMarkersMap.put(marker1, Demo1.class);
+        mMap.setOnInfoWindowClickListener(this);
+
+        Marker marker2 = mMap.addMarker(new MarkerOptions()
+        .position(new LatLng(51.580163,-0.314934))
+        .title("Kenton")
+        .snippet("Have fun") 
+        .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_a)));
+        allMarkersMap.put(marker2, Demo2.class);
+        mMap.setOnInfoWindowClickListener(this);
+               
         cb.setOnClickListener(new View.OnClickListener() {			
 			
         	@Override
@@ -75,7 +106,7 @@ public class MainActivity extends FragmentActivity {
 			    startActivityForResult(intent, CAPTURE_VIDEO_ACTIVITY_REQUEST_CODE);				
 			}
 		});
-                        
+       
         vb.setOnClickListener(new View.OnClickListener() {
 			
 			@Override
@@ -94,8 +125,14 @@ public class MainActivity extends FragmentActivity {
             finish();
         }
     }
-
     
+    // Call back
+    public void onInfoWindowClick(Marker marker) {
+    Class<?> cls = allMarkersMap.get(marker);
+    Intent intent = new Intent(MainActivity.this, cls);
+    startActivity(intent);    
+    }
+        
     /** Checking device has camera hardware or not */ 
     private boolean isDeviceSupportCamera() {
         if (getApplicationContext().getPackageManager().hasSystemFeature(
@@ -262,13 +299,7 @@ public class MainActivity extends FragmentActivity {
     	mMap.setMyLocationEnabled(true);
     	mMap.getUiSettings().setCompassEnabled(true);
     	mMap.getUiSettings().setRotateGesturesEnabled(true);
-    	
-        mMap.addMarker(new MarkerOptions()
-                .position(UOW)
-                .title("University of Westminster")
-                .snippet("Check out films here!")
-                .icon(BitmapDescriptorFactory
-                .fromResource(R.drawable.marker_a)));
+    	        
         mMap.addMarker(new MarkerOptions()
                 .position(LONDON)
                 .title("London")

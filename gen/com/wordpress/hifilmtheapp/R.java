@@ -546,9 +546,11 @@ containing a value of this type.
         public static final int main=0x7f0b0000;
     }
     public static final class raw {
-        public static final int demo1=0x7f040000;
-        public static final int gtm_analytics=0x7f040001;
-        public static final int splash_sound=0x7f040002;
+        public static final int demo=0x7f040000;
+        public static final int demo1=0x7f040001;
+        public static final int demo2=0x7f040002;
+        public static final int gtm_analytics=0x7f040003;
+        public static final int splash_sound=0x7f040004;
     }
     public static final class string {
         public static final int accept=0x7f060002;

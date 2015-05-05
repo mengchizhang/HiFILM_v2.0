@@ -16,7 +16,7 @@ public class Video extends Activity {
 		setContentView(R.layout.video);
 		
 		vid = (VideoView)findViewById(R.id.videoview);
-		String uripath = "android.resource://" + getPackageName () + "/" + R.raw.demo1;
+		String uripath = "android.resource://" + getPackageName () + "/" + R.raw.demo;
 		vid.setVideoURI(Uri.parse(uripath));
 		vid.start();
 		

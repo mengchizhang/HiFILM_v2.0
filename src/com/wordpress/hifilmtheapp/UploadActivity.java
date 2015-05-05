@@ -115,9 +115,7 @@ public class UploadActivity extends Activity {
         }
     }
  
-    /**
-     * Uploading the file to server
-     * */
+    /** Uploading the file to server */
     private class UploadFileToServer extends AsyncTask<Void, Integer, String> {
         @Override
         protected void onPreExecute() {
@@ -208,9 +206,7 @@ public class UploadActivity extends Activity {
  
     }
  
-    /**
-     * Method to show alert dialog
-     * */
+    /** Method to show alert dialog */
     private void showAlert(String message) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage(message).setTitle("Response from Servers")
